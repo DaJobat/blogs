@@ -1,0 +1,26 @@
+So, writing this file is pretty much the first thing I'm doing on openbsd.
+Installation and setup was pretty simple, though it did take me two attempts, as the first time I (foolishly) decided that I knew what i was doing with the networking better than dhcp.
+Anyway, now I'm in shell and ssh'd in, I figured I'd start writing this log of my learning OpenBSD. I decided to try it after listening to the Garbage podcast. I come from a background with a fair amount of Linux server admin experience (SLES, CentOS and Ubuntu mostly)
+Anyway, first thing to do is to install git, which I believe might involve delving into ports in some way? Though I did see in the faq that there is a package manager so i'll look at that first.
+Disregard that last sentence, packages it is! Seems like the ports tree is used if you're building something for a new architecture or somesuch. Should have really guessed that from the fact that it was called ports!
+
+5/8/16
+
+So in my journey to install git, I've discovered the doas command, which appears to be a sudo replacement. All I know is, doas.conf is a lot more readable than the garbage that visudo churns out. permit username > username ALL (ALL)=ALL
+Furthermore, pkg_add apparently needs a PKG_PATH environment variable (understandably) to know where it's meant to get its packages from. In my case, I'm using the oxford uni mirror. anyway, that PKG_PATH env variable doesn't get passed to doas without adding
+keepenv { PKG_PATH } to my doas, so my conf file now looks like:
+permit keepenv { PKG_PATH } username
+It took me a while of putting keepenv after the username before I actually look at the man pages again to get the order right. That's a mistake I'm sure I'll make again, probably just because the community for openBSD wants you to use the man pages rather than writing the same messageboard post over and over. Fun!
+Anyway, one doas pkg_add git and a bit of time later, and it is installed. Hooray!
+Just installed vim (hooray for being able to di( and gg again!) and ruby.
+
+18/8/16
+Been a while since I used this, been very busy at work (and running, and dota). Anyway, just generated some ssh keys for the server so I can use git easier, and used ssh-agent so I don't have to re-enter my passphrase all the time! Now to figure out the ports tree, as I want to install rust and it doesn't seem like it's in the package manager. Time for some learning! Also, I could do with getting tmux running at some point. So much to do!
+Well, I downloaded some of the ports tree with cvs, but for some reason it ran out of inodes or somesuch, even though the disk isn't full (checked with df). Anyway, now I have a decent amount of stuff in /usr/ports/, I used make search key=rust to find where the rust port had downloaded. This dumped a few things out, but sadly my lunch hour is over so I'll be using this information for fun and profit later!
+
+23/8/16
+Again, been a while due to tiling my kitchen. Life takes up too much time! Managed to get on here for about five minutes, fiddling around with ksh. vi mode is the first thing to go in my .kshrc! Being able to move between words on the command line is so good.
+
+24/8/16
+Well, the problem of the filesystem that had the ports tree on it having run out of inodes reared its ugly head again. While trying to install ocaml (at the behest of awal on the lobste.rs irc), I found that I couldn't due to (surprise surprise) no space/inodes. Using df -i showed that there were indeed no inodes left free on the /usr/ports, so I performed the measured and even-handed response of deleting the whole thing. The inode issue is caused (i think) by there being a lot of small files, each of which uses an inode. The inode holds the location of the file, so it's pretty important! 
+Anyway, now I need to either re-create the file system to give it more inodes (possible) or to just only pull the ports I actually want from the ports tree (easier, but less useful, and also runs the risk of not being able to build a port because of dependencies). time to man newfs!
